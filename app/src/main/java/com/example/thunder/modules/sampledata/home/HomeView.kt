@@ -55,6 +55,7 @@ fun HomeView(modifier: Modifier = Modifier) {
                 BuildWeatherHeader()
                 BuildWeatherCondition()
                 BuildWeatherMetrics()
+                BuildWeeklyWeatherForecastView()
             }
         }
     }
@@ -64,7 +65,6 @@ fun HomeView(modifier: Modifier = Modifier) {
 Responsible to build the header containing the location,
 and the current date, with a search bar and a favourites button.
  */
-@Preview
 @Composable
 fun BuildWeatherHeader() {
 
@@ -205,7 +205,7 @@ fun BuildWeatherMetrics() {
             colors = CardDefaults.cardColors(Color(0xFF212328)),
             shape = RoundedCornerShape(10.dp),
             elevation = CardDefaults.cardElevation(20.dp),
-            ) {
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxSize(),
@@ -322,4 +322,72 @@ fun BuildWeatherMetrics() {
         }
     }
 
+}
+
+@Composable
+fun BuildWeeklyWeatherForecastView() {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize(),
+        color = Color.Black
+    ) {
+        Column(
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            BuildIndividualForecastRow()
+            BuildIndividualForecastRow()
+            BuildIndividualForecastRow()
+            BuildIndividualForecastRow()
+            BuildIndividualForecastRow()
+            BuildIndividualForecastRow()
+            BuildIndividualForecastRow()
+        }
+    }
+}
+
+@Composable
+fun BuildIndividualForecastRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Today",
+            fontSize = 15.sp,
+            color = Color.White
+        )
+
+        Text(
+            "13°",
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = Color.LightGray
+        )
+
+        Text(
+            "Rainy",
+            color = Color.White
+        )
+
+        Text(
+            "22°",
+            fontWeight = FontWeight.Normal,
+            fontSize = 18.sp,
+            color = Color.White
+        )
+
+        Surface(
+            color = Color.Transparent
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.wind),
+                contentDescription = "Weather Icon",
+                modifier = Modifier.size(30.dp),
+                colorFilter = ColorFilter.tint(Color.White)
+            )
+        }
+    }
 }
