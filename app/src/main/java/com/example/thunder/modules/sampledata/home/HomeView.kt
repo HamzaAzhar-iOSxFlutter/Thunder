@@ -7,10 +7,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -43,17 +48,22 @@ fun HomeView(modifier: Modifier = Modifier) {
             .fillMaxSize(),
         containerColor = Color.Black
     ) { innerPadding ->
-       Surface(
-           modifier = modifier.padding(innerPadding),
-       ) {
-           Column {
-               BuildWeatherHeader()
-               BuildWeatherCondition()
-           }
-       }
+        Surface(
+            modifier = modifier.padding(innerPadding),
+        ) {
+            Column {
+                BuildWeatherHeader()
+                BuildWeatherCondition()
+                BuildWeatherMetrics()
+            }
+        }
     }
 }
 
+/*
+Responsible to build the header containing the location,
+and the current date, with a search bar and a favourites button.
+ */
 @Preview
 @Composable
 fun BuildWeatherHeader() {
@@ -91,23 +101,43 @@ fun BuildWeatherHeader() {
                 }
             }
 
-            //Search Icon
-            Surface(
-                color = Color.Black
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = Color.Gray,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable {}
-                )
+                Surface(
+                    color = Color.Black
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Favourites",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {}
+                    )
+                }
+
+                Surface(
+                    color = Color.Black
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {}
+                    )
+                }
             }
         }
     }
 }
 
+/*
+This function is responsible to build the weather conditions,
+such as the temperature and an svg image that indicates the weather type.
+ */
 @Composable
 fun BuildWeatherCondition() {
 
@@ -153,10 +183,143 @@ fun BuildWeatherCondition() {
                     painter = painterResource(id = R.drawable.thunderstorm),
                     contentDescription = "Weather Icon",
                     modifier = Modifier.size(200.dp),
-                    colorFilter = ColorFilter.tint(androidx.compose.ui.graphics.Color.Yellow)
+                    colorFilter = ColorFilter.tint(Color.Yellow)
                 )
             }
 
         }
     }
+}
+
+@Composable
+fun BuildWeatherMetrics() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(),
+        color = Color.Black
+    ) {
+        Card(
+            modifier = Modifier
+                .padding(20.dp)
+                .height(120.dp),
+            colors = CardDefaults.cardColors(Color(0xFF212328)),
+            shape = RoundedCornerShape(10.dp),
+            elevation = CardDefaults.cardElevation(20.dp),
+            ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        color = Color.Transparent
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.wind),
+                            contentDescription = "Weather Icon",
+                            modifier = Modifier.size(30.dp),
+                            colorFilter = ColorFilter.tint(Color.White)
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "10m/s",
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+
+                        Text(
+                            "Wind",
+                            fontWeight = FontWeight.Light,
+                            fontSize = 12.sp,
+                            color = Color.LightGray
+                        )
+                    }
+
+
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        color = Color.Transparent
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.humidity),
+                            contentDescription = "Weather Icon",
+                            modifier = Modifier.size(30.dp),
+                            colorFilter = ColorFilter.tint(Color.Cyan)
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "98%",
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+
+
+                        Text(
+                            "Humidity",
+                            fontWeight = FontWeight.Light,
+                            fontSize = 12.sp,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        color = Color.Transparent
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.rain),
+                            contentDescription = "Weather Icon",
+                            modifier = Modifier.size(30.dp),
+                            colorFilter = ColorFilter.tint(Color.Black)
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "100%",
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+
+
+                        Text(
+                            "Rain",
+                            fontWeight = FontWeight.Light,
+                            fontSize = 12.sp,
+                            color = Color.LightGray
+                        )
+                    }
+
+                }
+            }
+        }
+    }
+
 }
