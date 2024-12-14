@@ -1,5 +1,6 @@
 package com.example.thunder.modules.sampledata.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -126,7 +127,9 @@ fun BuildWeatherHeader() {
                         tint = Color.Gray,
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable {}
+                            .clickable {
+                                Log.d("HomeScreen", "Clicked!!")
+                            }
                     )
                 }
             }
