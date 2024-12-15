@@ -19,7 +19,7 @@ class HomeViewModel @Inject constructor(private val repository: WeatherRepositor
         DataOrException(null, true, Exception("")))
 
     init {
-        getWeather()
+     //   getWeather()
     }
 
     fun getWeather(cityName: String = "London") {

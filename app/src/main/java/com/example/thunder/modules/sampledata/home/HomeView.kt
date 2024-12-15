@@ -1,5 +1,6 @@
 package com.example.thunder.modules.sampledata.home
 
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.thunder.R
@@ -50,13 +52,13 @@ import com.example.thunder.routes.Routes
 
 @Composable
 fun HomeView(modifier: Modifier = Modifier, navController: NavController) {
-//    val viewModel: HomeViewModel = viewModel()
-//    val weatherData = viewModel.data.value
-//
-//    // Call getWeather only once (or on initial launch)
-//    LaunchedEffect(Unit) {
-//        viewModel.getWeather("London")
-//    }
+    val viewModel: HomeViewModel = hiltViewModel()
+    val weatherData = viewModel.data.value.data
+
+    // Call getWeather only once (or on initial launch)
+    LaunchedEffect(Unit) {
+        viewModel.getWeather("London")
+    }
 
     Scaffold(
         modifier = modifier
@@ -66,11 +68,13 @@ fun HomeView(modifier: Modifier = Modifier, navController: NavController) {
         Surface(
             modifier = modifier.padding(innerPadding),
         ) {
-            Column {
-                BuildWeatherHeader(navController = navController)
-                BuildWeatherCondition()
-                BuildWeatherMetrics()
-                BuildWeeklyWeatherForecastView()
+            weatherData?.let { weather ->
+                Column {
+                    BuildWeatherHeader(weatherData = weather, navController = navController)
+                    BuildWeatherCondition()
+                    BuildWeatherMetrics()
+                    BuildWeeklyWeatherForecastView()
+                }
             }
         }
     }
@@ -81,7 +85,7 @@ Responsible to build the header containing the location,
 and the current date, with a search bar and a favourites button.
  */
 @Composable
-fun BuildWeatherHeader(navController: NavController) {
+fun BuildWeatherHeader(weatherData: Weather, navController: NavController) {
     Surface(
         color = Color.Black
     ) {
