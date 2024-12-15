@@ -47,6 +47,9 @@ fun SearchView(modifier: Modifier = Modifier, navController: NavController) {
     }
 }
 
+/*
+Responsible for
+ */
 @Composable
 fun BuildHeaderView(navController: NavController) {
 
@@ -59,6 +62,7 @@ fun BuildHeaderView(navController: NavController) {
         horizontalAlignment = Alignment.Start
     ) {
 
+        //Back Button
         Surface(
             modifier = Modifier
                 .padding(10.dp)
@@ -83,7 +87,7 @@ fun BuildHeaderView(navController: NavController) {
             }
         }
 
-
+        //Search textfield
         Surface(
             modifier = Modifier
                 .padding(10.dp),
@@ -97,6 +101,7 @@ fun BuildHeaderView(navController: NavController) {
                 isSingleLine = true,
             ) { finalString ->
                 Log.d("Search View", "textfield value is $finalString")
+                cityTextFieldState.value = ""
             }
         }
     }
