@@ -38,11 +38,12 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
 import com.example.thunder.R
+import com.example.thunder.routes.Routes
 
-@Preview
 @Composable
-fun HomeView(modifier: Modifier = Modifier) {
+fun HomeView(modifier: Modifier = Modifier, navController: NavController) {
 
     Scaffold(
         modifier = modifier
@@ -53,7 +54,7 @@ fun HomeView(modifier: Modifier = Modifier) {
             modifier = modifier.padding(innerPadding),
         ) {
             Column {
-                BuildWeatherHeader()
+                BuildWeatherHeader(navController = navController)
                 BuildWeatherCondition()
                 BuildWeatherMetrics()
                 BuildWeeklyWeatherForecastView()
@@ -67,7 +68,7 @@ Responsible to build the header containing the location,
 and the current date, with a search bar and a favourites button.
  */
 @Composable
-fun BuildWeatherHeader() {
+fun BuildWeatherHeader(navController: NavController) {
 
     Surface(
         color = Color.Black
@@ -128,7 +129,7 @@ fun BuildWeatherHeader() {
                         modifier = Modifier
                             .size(24.dp)
                             .clickable {
-                                Log.d("HomeScreen", "Clicked!!")
+                                navController.navigate(Routes.screenB)
                             }
                     )
                 }

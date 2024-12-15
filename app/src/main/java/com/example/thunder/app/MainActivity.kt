@@ -11,7 +11,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.thunder.modules.sampledata.home.HomeView
+import com.example.thunder.modules.sampledata.search.SearchView
+import com.example.thunder.routes.Routes
 import com.example.thunder.ui.theme.ThunderTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,17 +26,26 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ThunderTheme {
-                MyApp {
-                    HomeView(modifier = Modifier)
-                }
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController, startDestination = Routes.screenA, builder = {
+                        composable(route = Routes.screenA) {
+                            HomeView(modifier = Modifier, navController = navController)
+                        }
+
+                        composable(route = Routes.screenB) {
+                            SearchView(navController = navController)
+                        }
+                    }
+                )
             }
         }
     }
 }
 
-@Composable
-fun MyApp(content: @Composable () -> Unit) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        HomeView(modifier = Modifier.padding(innerPadding))
-    }
-}
+//@Composable
+//fun MyApp(content: @Composable () -> Unit) {
+//    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+//        HomeView(modifier = Modifier.padding(innerPadding))
+//    }
+//}
