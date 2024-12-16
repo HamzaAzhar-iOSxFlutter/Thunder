@@ -12,7 +12,7 @@ interface WeatherApi {
     suspend fun getWeatherDetails(
         @Query("key") apiKey: String = Environment.ApiKey,
         @Query("q") query: String,
-        @Query("days") days: Int = 7,
+        @Query("days") days: Int = 10,
         @Query("aqi") aqi: String = "no",
         @Query("alerts") alerts: String = "no"
     ): Weather

@@ -2,7 +2,10 @@ package com.example.thunder.modules.sampledata.home
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.thunder.data.DataOrException
@@ -18,9 +21,9 @@ class HomeViewModel @Inject constructor(private val repository: WeatherRepositor
     val data: MutableState<DataOrException<Weather, Boolean, Exception>> = mutableStateOf(
         DataOrException(null, true, Exception("")))
 
-    init {
-     //   getWeather()
-    }
+    private val _favourites = mutableStateListOf<String>()
+    val favourites: List<String> get() = _favourites
+    var isFavourite by mutableStateOf(false)
 
     fun getWeather(cityName: String = "London") {
         viewModelScope.launch {
@@ -34,5 +37,19 @@ class HomeViewModel @Inject constructor(private val repository: WeatherRepositor
                 }
             }
         }
+    }
+
+    fun updateFavouriteState(cityName: String) {
+        isFavourite = _favourites.contains(cityName)
+    }
+
+    fun addToFavourites(cityName: String) {
+        if (!_favourites.contains(cityName)) {
+            _favourites.add(cityName)
+        }
+    }
+
+    fun removeFromFavourites(cityName: String) {
+        _favourites.remove(cityName)
     }
 }

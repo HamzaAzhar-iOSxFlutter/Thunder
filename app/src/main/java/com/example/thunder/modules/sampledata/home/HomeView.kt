@@ -1,6 +1,6 @@
 package com.example.thunder.modules.sampledata.home
 
-import androidx.activity.viewModels
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +30,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,22 +43,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.thunder.R
-import com.example.thunder.data.DataOrException
+import com.example.thunder.model.FavouritesManager
 import com.example.thunder.model.Weather
+import com.example.thunder.model.WeeklyForecast
+import com.example.thunder.model.generateDummyWeeklyForecast
 import com.example.thunder.routes.Routes
+import com.example.thunder.utilities.displayDate
 
 @Composable
 fun HomeView(modifier: Modifier = Modifier, navController: NavController) {
     val viewModel: HomeViewModel = hiltViewModel()
     val weatherData = viewModel.data.value.data
 
-    // Call getWeather only once (or on initial launch)
-    LaunchedEffect(Unit) {
-        viewModel.getWeather("London")
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val cityName = savedStateHandle?.getStateFlow<String>("cityName", "")?.collectAsState(initial = "")
+
+    // Track favourite state, initializing it based on the weather data
+    var isFavourite by remember {
+        mutableStateOf(FavouritesManager.isFavourite(weatherData?.location?.country ?: ""))
+    }
+
+    // Update the favourite state when the weather data changes
+    LaunchedEffect(weatherData) {
+        weatherData?.let {
+            isFavourite = FavouritesManager.isFavourite(it.location.country)
+        }
+    }
+
+    // Trigger network request when cityName changes
+    LaunchedEffect(cityName?.value) {
+        if (cityName != null) {
+            if (cityName.value.isNotEmpty()) {
+                viewModel.getWeather(cityName.value)
+            } else {
+                viewModel.getWeather("London")
+            }
+        }
     }
 
     Scaffold(
@@ -70,10 +95,23 @@ fun HomeView(modifier: Modifier = Modifier, navController: NavController) {
         ) {
             weatherData?.let { weather ->
                 Column {
-                    BuildWeatherHeader(weatherData = weather, navController = navController)
-                    BuildWeatherCondition()
-                    BuildWeatherMetrics()
-                    BuildWeeklyWeatherForecastView()
+                    BuildWeatherHeader(
+                        weatherData = weather,
+                        navController = navController,
+                        isFavourite = isFavourite,
+                        onFavouriteClicked = {
+                            // Toggle favourite state and update the manager
+                            isFavourite = !isFavourite
+                            if (isFavourite) {
+                                FavouritesManager.addFavourite(weather.location.country)
+                            } else {
+                                FavouritesManager.removeFavourite(weather.location.country)
+                            }
+                        }
+                    )
+                    BuildWeatherCondition(weatherData = weather)
+                    BuildWeatherMetrics(weatherData = weather)
+                    BuildWeeklyWeatherForecastView(weatherData = weather)
                 }
             }
         }
@@ -85,11 +123,16 @@ Responsible to build the header containing the location,
 and the current date, with a search bar and a favourites button.
  */
 @Composable
-fun BuildWeatherHeader(weatherData: Weather, navController: NavController) {
+fun BuildWeatherHeader(
+    weatherData: Weather,
+    navController: NavController,
+    isFavourite: Boolean,
+    onFavouriteClicked: () -> Unit
+) {
     Surface(
         color = Color.Black
     ) {
-        //Main content goes here
+        // Main content goes here
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,14 +147,14 @@ fun BuildWeatherHeader(weatherData: Weather, navController: NavController) {
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     Text(
-                        "Stuttgart",
+                        weatherData.location.country,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White
                     )
 
                     Text(
-                        "12 September, Sunday",
+                        displayDate(localTime = weatherData.location.localtime),
                         fontWeight = FontWeight.Light,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.LightGray
@@ -129,10 +172,12 @@ fun BuildWeatherHeader(weatherData: Weather, navController: NavController) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = "Favourites",
-                        tint = Color.Gray,
+                        tint = if (isFavourite) Color.Red else Color.Gray,
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable {}
+                            .clickable {
+                                onFavouriteClicked()
+                            }
                     )
                 }
 
@@ -156,6 +201,7 @@ fun BuildWeatherHeader(weatherData: Weather, navController: NavController) {
         }
     }
 }
+
 
 /*
 Responsible to build Menu items with Favourites, Setting, and About,
@@ -198,20 +244,6 @@ fun MinimalDropdownMenu(navController: NavController) {
             DropdownMenuItem(
                 text = {
                     Text(
-                        "Settings",
-                        fontWeight = FontWeight.Light,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray
-                    )
-                },
-                onClick = {
-                    expanded = false
-                    navController.navigate(Routes.SettingView)
-                }
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(
                         "About",
                         fontWeight = FontWeight.Light,
                         style = MaterialTheme.typography.bodyMedium,
@@ -233,7 +265,7 @@ This function is responsible to build the weather conditions,
 such as the temperature and an svg image that indicates the weather type.
  */
 @Composable
-fun BuildWeatherCondition() {
+fun BuildWeatherCondition(weatherData: Weather) {
 
     Surface(
         color = Color.Black
@@ -255,14 +287,14 @@ fun BuildWeatherCondition() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "18°",
+                        "${weatherData.current.temp_c.toInt()}°",
                         fontWeight = FontWeight.Bold,
                         fontSize = 90.sp,
                         color = Color.White
                     )
 
                     Text(
-                        "Thunderstorm",
+                        weatherData.current.condition.text,
                         fontWeight = FontWeight.Light,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.LightGray
@@ -286,7 +318,7 @@ fun BuildWeatherCondition() {
 }
 
 @Composable
-fun BuildWeatherMetrics() {
+fun BuildWeatherMetrics(weatherData: Weather) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -325,7 +357,7 @@ fun BuildWeatherMetrics() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            "10m/s",
+                            "${weatherData.current.wind_mph.toInt()}m/s",
                             fontWeight = FontWeight.Normal,
                             fontSize = 18.sp,
                             color = Color.White
@@ -361,7 +393,7 @@ fun BuildWeatherMetrics() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            "98%",
+                            "${weatherData.current.humidity}%",
                             fontWeight = FontWeight.Normal,
                             fontSize = 18.sp,
                             color = Color.White
@@ -385,10 +417,10 @@ fun BuildWeatherMetrics() {
                         color = Color.Transparent
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.rain),
+                            painter = painterResource(id = R.drawable.pressure),
                             contentDescription = "Weather Icon",
                             modifier = Modifier.size(30.dp),
-                            colorFilter = ColorFilter.tint(Color.Black)
+                            colorFilter = ColorFilter.tint(Color.Magenta)
                         )
                     }
 
@@ -396,7 +428,7 @@ fun BuildWeatherMetrics() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            "100%",
+                            "${weatherData.current.pressure_in.toInt()}",
                             fontWeight = FontWeight.Normal,
                             fontSize = 18.sp,
                             color = Color.White
@@ -404,7 +436,7 @@ fun BuildWeatherMetrics() {
 
 
                         Text(
-                            "Rain",
+                            "Pressure",
                             fontWeight = FontWeight.Light,
                             fontSize = 12.sp,
                             color = Color.LightGray
@@ -419,7 +451,10 @@ fun BuildWeatherMetrics() {
 }
 
 @Composable
-fun BuildWeeklyWeatherForecastView() {
+fun BuildWeeklyWeatherForecastView(weatherData: Weather) {
+
+    val weeklyForecast = generateDummyWeeklyForecast()
+
     Surface(
         modifier = Modifier
             .fillMaxSize(),
@@ -428,19 +463,19 @@ fun BuildWeeklyWeatherForecastView() {
         Column(
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            BuildIndividualForecastRow()
-            BuildIndividualForecastRow()
-            BuildIndividualForecastRow()
-            BuildIndividualForecastRow()
-            BuildIndividualForecastRow()
-            BuildIndividualForecastRow()
-            BuildIndividualForecastRow()
+
+            weeklyForecast.forEach { forecast ->
+                BuildIndividualForecastRow(forecastData = forecast)
+            }
         }
     }
 }
 
+/*
+Method responsible to build and populate weekly vertical rows of weather conditions.
+ */
 @Composable
-fun BuildIndividualForecastRow() {
+fun BuildIndividualForecastRow(forecastData: WeeklyForecast) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -449,32 +484,41 @@ fun BuildIndividualForecastRow() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Today",
+            text = forecastData.day,
             fontSize = 15.sp,
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.weight(2f)
         )
 
         Text(
-            "13°",
+            text = forecastData.minTemperature,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
-            color = Color.LightGray
+            color = Color.LightGray,
+            modifier = Modifier.weight(1f)
         )
 
         Text(
-            "Rainy",
-            color = Color.White
+            text = forecastData.weatherCondition,
+            color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(2f)
+                .padding(horizontal = 8.dp)
         )
 
         Text(
-            "22°",
+            text = forecastData.maxTemperature,
             fontWeight = FontWeight.Normal,
             fontSize = 18.sp,
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.weight(1f)
         )
 
         Surface(
-            color = Color.Transparent
+            color = Color.Transparent,
+            modifier = Modifier.weight(0.5f)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.wind),
